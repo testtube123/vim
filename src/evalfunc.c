@@ -37,9 +37,6 @@ static void f_col(typval_T *argvars, typval_T *rettv);
 static void f_confirm(typval_T *argvars, typval_T *rettv);
 static void f_copy(typval_T *argvars, typval_T *rettv);
 static void f_cursor(typval_T *argsvars, typval_T *rettv);
-#ifdef MSWIN
-static void f_debugbreak(typval_T *argvars, typval_T *rettv);
-#endif
 static void f_deepcopy(typval_T *argvars, typval_T *rettv);
 static void f_did_filetype(typval_T *argvars, typval_T *rettv);
 static void f_echoraw(typval_T *argvars, typval_T *rettv);
@@ -1295,14 +1292,6 @@ static funcentry_T global_functions[] =
 			ret_number,	    f_cscope_connection},
     {"cursor",		1, 3, FEARG_1,	    arg13_cursor,
 			ret_number,	    f_cursor},
-    {"debugbreak",	1, 1, FEARG_1,	    arg1_number,
-			ret_number,
-#ifdef MSWIN
-	    f_debugbreak
-#else
-	    NULL
-#endif
-			},
     {"deepcopy",	1, 2, FEARG_1,	    arg12_deepcopy,
 			ret_first_arg,	    f_deepcopy},
     {"delete",		1, 2, FEARG_1,	    arg2_string,
@@ -3104,36 +3093,6 @@ f_cursor(typval_T *argvars, typval_T *rettv)
 {
     set_cursorpos(argvars, rettv, FALSE);
 }
-
-#ifdef MSWIN
-/*
- * "debugbreak()" function
- */
-    static void
-f_debugbreak(typval_T *argvars, typval_T *rettv)
-{
-    int		pid;
-
-    rettv->vval.v_number = FAIL;
-    if (in_vim9script() && check_for_number_arg(argvars, 0) == FAIL)
-	return;
-
-    pid = (int)tv_get_number(&argvars[0]);
-    if (pid == 0)
-	emsg(_(e_invarg));
-    else
-    {
-	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, 0, pid);
-
-	if (hProcess != NULL)
-	{
-	    DebugBreakProcess(hProcess);
-	    CloseHandle(hProcess);
-	    rettv->vval.v_number = OK;
-	}
-    }
-}
-#endif
 
 /*
  * "deepcopy()" function
